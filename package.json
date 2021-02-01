@@ -1,0 +1,33 @@
+{
+  "name": "platzi-verse-mqtt",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A Simple IoT Platform - MQTT Server",
+  "main": "server.js",
+  "scripts": {
+    "start": "NODE_ENV=production node server.js",
+    "start-dev": "DEBUG=platziverse:* nodemon server.js",
+    "lint": "standard"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vurokrazia/platzi-verse-mqtt.git"
+  },
+  "author": "Jesús Martínez <jesus.alberto.vk@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vurokrazia/platzi-verse-mqtt/issues"
+  },
+  "homepage": "https://github.com/vurokrazia/platzi-verse-mqtt#readme",
+  "devDependencies": {
+    "nodemon": "^1.11.0",
+    "standard": "^10.0.3"
+  },
+  "dependencies": {
+    "platziverse-db": "file:../platzi-verse-db",
+    "chalk": "^2.1.0",
+    "debug": "^3.0.0",
+    "mosca": "^2.5.2",
+    "redis": "^2.8.0"
+  }
+}
