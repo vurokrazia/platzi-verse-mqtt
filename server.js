@@ -38,8 +38,49 @@ server.on('clientConnected', client => {
   clients.set(client.id, null)
 })
 
-server.on('clientDisconnected', client => {
+server.on('clientDisconnected', async (client) => {
   debug(`Client Disconnected: ${client.id}`)
+  const agent = clients.get(client.id)
+
+  if (agent) {
+    // Mark Agent as Disconnected
+    agent.connected = false
+
+    // try {
+    //   await Agent.createOrUpdate(agent)
+    // } catch (e) {
+    //   return handleError(e)
+    // }
+
+    const saveMetricsPromises = payload.metrics.map(async (metric) => {
+      let createdMetric
+      try {
+        createdMetric = await Metric.create(savedAgent.uuid, metric)
+      } catch (error) {
+        return handleError
+      }
+      debug(`Metric ${createdMetric.id} saved on agent ${savedAgent.uuid}`)
+    })
+
+    try {
+      await Promise.all(saveMetricsPromises)
+    } catch (error) {
+      return handleError(error)
+    }
+
+    // Delete Agent from Clients List
+    clients.delete(client.id)
+
+    server.publish({
+      topic: 'agent/disconnected',
+      payload: JSON.stringify({
+        agent: {
+          uuid: agent.uuid
+        }
+      })
+    })
+    debug(`Client (${client.id}) associated to Agent (${agent.uuid}) marked as disconnected`)
+  }
 })
 
 server.on('published', async (packet, client) => {
@@ -83,6 +124,19 @@ server.on('published', async (packet, client) => {
             })
           })
         }
+
+        // Store Metrics
+        for (let metric of payload.metrics) {
+          let m
+
+          try {
+            m = await Metric.create(agent.uuid, metric)
+          } catch (e) {
+            return handleError(e)
+          }
+
+          debug(`Metric ${m.id} saved on agent ${agent.uuid}`)
+        }
       }
       break
   }
@@ -99,13 +153,13 @@ server.on('ready', async () => {
 
 server.on('error', handleFatalError)
 
-function handleFatalError (err) {
+function handleFatalError(err) {
   console.error(`${chalk.red('[fatal error]')} ${err.message}`)
   console.error(err.stack)
   process.exit(1)
 }
 
-function handleError (err) {
+function handleError(err) {
   console.error(`${chalk.red('[error]')} ${err.message}`)
   console.error(err.stack)
 }
